@@ -4,9 +4,10 @@ import qs from 'qs';
 import { throttle } from 'throttle-debounce';
 
 import Slider from 'rc-slider';
-import 'rc-switch/assets/index.css'
-import Switch from 'rc-switch';
 import 'rc-slider/assets/index.css';
+import Switch from 'rc-switch';
+import 'rc-switch/assets/index.css';
+
 
 
 export default class AmixerIntegerComponent extends Component {
@@ -20,7 +21,6 @@ export default class AmixerIntegerComponent extends Component {
       linked: true,
       isLoading: true
     }
-
   }
 
   computeValues = () => {
@@ -81,11 +81,11 @@ export default class AmixerIntegerComponent extends Component {
         error: error
       });
     })
-
   }
 
   onSwitchChange = (value) => {
     this.setState({linked: value});
+    //TODO Handle non-linked sliders (need to get key from child component)
   }
 
   render() {
@@ -97,27 +97,26 @@ export default class AmixerIntegerComponent extends Component {
         <div className="d-flex flex-row justify-content-center">
 
           {Object.keys(this.props.control.current_values).map((key) =>
-          <div className="d-flex flex-column">
-            <div className="d-flex mt-2 justify-content-center">
-              <span>{this.props.control.info.values === '2' ? key === '0' ? 'R' : 'L' : key }</span>
+            <div key={key} className="d-flex flex-column">
+              <div className="d-flex mt-2 justify-content-center">
+                <span>{this.props.control.info.values === '2' ? key === '0' ? 'R' : 'L' : key }</span>
+              </div>
+              <div className="d-flex justify-content-center mt-4">
+                <Slider
+                  className="slider"
+                  vertical={true}
+                  min={Number(this.props.control.info.min)}
+                  max={Number(this.props.control.info.max)}
+                  disabled={!this.props.control.info.access.includes('w')}
+                  onChange={this.onSliderChange}
+                  onAfterChange={this.onSliderAfterChange}
+                  value={Number(this.state.values[key])}
+                />
+              </div>
+              <div className="d-flex mt-3 justify-content-center">
+                <span>{this.state.computedValues ? this.state.computedValues[key] : this.state.values[key] }</span>
+              </div>
             </div>
-            <div className="d-flex justify-content-center mt-4">
-              <Slider
-                className="slider"
-                key={key}
-                vertical={true}
-                min={Number(this.props.control.info.min)}
-                max={Number(this.props.control.info.max)}
-                disabled={!this.props.control.info.access.includes('w')}
-                onChange={this.onSliderChange}
-                onAfterChange={this.onSliderAfterChange}
-                value={Number(this.state.values[key])}
-              />
-            </div>
-            <div className="d-flex mt-3 justify-content-center">
-              <span>{this.state.computedValues ? this.state.computedValues[key] : this.state.values[key] }</span>
-            </div>
-          </div>
           )}
 
         </div>
@@ -125,8 +124,7 @@ export default class AmixerIntegerComponent extends Component {
           <Switch
             className="switch"
             checked={this.state.linked}
-            //disabled={!this.props.control.info.access.includes('w')}
-            disabled={true}
+            disabled={!this.props.control.info.access.includes('w')}
             checkedChildren={'ON'}
             unCheckedChildren={'OFF'}
             onChange={this.onSwitchChange}
@@ -141,5 +139,4 @@ export default class AmixerIntegerComponent extends Component {
       </div>
     );
   }
-
 }

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import qs from 'qs';
 
+import Switch from 'rc-switch';
+import 'rc-switch/assets/index.css';
 
 export default class AmixerEnumeratedComponent extends Component {
 
@@ -10,7 +12,8 @@ export default class AmixerEnumeratedComponent extends Component {
 
     this.state = {
       uri: this.props.amixerAPI + "/" + this.props.control.info.numid,
-      value: this.props.control.current_values[0],
+      values: this.props.control.current_values,
+      linked: true,
       isLoading: true
     }
   }
@@ -19,7 +22,7 @@ export default class AmixerEnumeratedComponent extends Component {
     axios.get(this.state.uri)
       .then (response => {
         this.setState({
-          value: response.data.current_values[0],
+          values: response.data.current_values,
           isLoading: false
         });
       })
@@ -31,22 +34,26 @@ export default class AmixerEnumeratedComponent extends Component {
       });
   }
 
-  handleClick = () => {
-    let value = Number(this.state.value)
-    value + 1 >= Number(this.props.control.info.items) ? value = 0 : value++;
+  onSwitchChange = (value) => {
+    let valueStr = value ? "on" : "off";
+    let values = {...this.state.values};
+    Object.keys(values).map(key => {
+      return values[key] = valueStr;
+    });
+    const valuesStr = Object.keys(values).map(key => values[key]).join(',');
 
     axios({
       method: 'post',
       url: this.state.uri,
       data: qs.stringify({
-        values: value,
+        values: valuesStr,
       }),
       headers: {
         'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
       }
     }).then(response => {
       this.setState({
-        value
+        values: response.data.current_values
       });
       this.computeValues();
     }).catch(error => {
@@ -54,6 +61,9 @@ export default class AmixerEnumeratedComponent extends Component {
         error: error
       });
     })
+
+
+    this.setState({values});
   }
 
   render() {
@@ -62,14 +72,20 @@ export default class AmixerEnumeratedComponent extends Component {
         <div className="d-flex justify-content-center mt-2">
           <span>{this.props.label ? this.props.label : ''}</span>
         </div>
-        <div className="d-flex text-center p-1 mt-3">
-          <button
-            className="btn btn-outline-info btn-sm"
-            disabled={!this.props.control.info.access.includes('w')}
-            onClick={this.handleClick}
-            type="button">
-            <span>{this.props.control.item_value_map[this.state.value]}</span>
-          </button>
+        <div className="d-flex flex-row justify-content-center">
+
+          {Object.keys(this.props.control.current_values).map((key) =>
+            <Switch
+              key={key}
+              className="switch m-2"
+              checked={this.state.values[key] === "on" ? true : false}
+              disabled={!this.props.control.info.access.includes('w')}
+              checkedChildren={'ON'}
+              unCheckedChildren={'OFF'}
+              onChange={this.onSwitchChange}
+            />
+          )}
+
         </div>
         <div className="d-flex justify-content-center text-center p-1 mt-3">
           <span>{this.props.showALSAName ? this.props.control.info.name : ''}</span>

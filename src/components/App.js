@@ -3,10 +3,12 @@ import axios from 'axios';
 
 import AmixerIntegerComponent from './AmixerIntegerComponent';
 import AmixerEnumeratedComponent from './AmixerEnumeratedComponent';
+import AmixerBooleanComponent from './AmixerBooleanComponent'
 
 import './App.css';
 import './AmixerIntegerComponent.css';
 import './AmixerEnumeratedComponent.css'
+import './AmixerBooleanComponent.css'
 
 const AmixerAPI = 'http://localhost:3000/cards/0/controls'
 
@@ -69,6 +71,19 @@ class App extends Component {
       />);
   }
 
+  renderBooleanControls() {
+    let controls = this.state.controls;
+    return Object.keys(controls)
+      .filter(key => !isNaN(key))
+      .filter(key => controls[key].info.type === "BOOLEAN")
+      .map(key => <AmixerBooleanComponent
+        key={key}
+        label='label'
+        showALSAName={true}
+        control={controls[key]}
+        amixerAPI={AmixerAPI}
+      />);
+  }
 
   render() {
     return (
@@ -76,13 +91,13 @@ class App extends Component {
 
         <header>
           <nav className="navbar navbar-light bg-light">
-            <span className="navbar-brand mb-0 h1">Amixer React Components Example</span>
+            <span className="navbar-brand mb-0 h1">Using AmixerAPI on {AmixerAPI}</span>
           </nav>
         </header>
 
         <div className="d-flex flex-column flex-wrap p-4 m-4 border border-secondary">
           <div className="d-flex flex-row p-2">
-            <span>Found INTEGER Controls:</span>
+            <span>amixer INTEGER type controls found:</span>
           </div>
           <div className="d-flex flex-row flex-wrap">
             {this.state.controls != null ? this.renderIntegerControls() : <p>Loading controls...</p>}
@@ -91,10 +106,19 @@ class App extends Component {
 
         <div className="d-flex flex-column flex-wrap p-4 m-4 border border-secondary">
           <div className="d-flex flex-row p-2">
-            <span>Found ENUMERATED Controls:</span>
+            <span>amixer ENUMERATED type controls found:</span>
           </div>
           <div className="d-flex flex-row flex-wrap">
             {this.state.controls != null ? this.renderEnumeratedControls() : <p>Loading controls...</p>}
+          </div>
+        </div>
+
+        <div className="d-flex flex-column flex-wrap p-4 m-4 border border-secondary">
+          <div className="d-flex flex-row p-2">
+            <span>amixer BOOLEAN type controls found:</span>
+          </div>
+          <div className="d-flex flex-row flex-wrap">
+            {this.state.controls != null ? this.renderBooleanControls() : <p>Loading controls...</p>}
           </div>
         </div>
 

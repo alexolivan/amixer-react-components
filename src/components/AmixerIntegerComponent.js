@@ -95,6 +95,7 @@ export default class AmixerIntegerComponent extends Component {
           <span>{this.props.label ? this.props.label : ''}</span>
         </div>
         <div className="d-flex flex-row justify-content-center">
+
           {Object.keys(this.props.control.current_values).map((key) =>
           <div className="d-flex flex-column">
             <div className="d-flex mt-2 justify-content-center">
@@ -117,8 +118,8 @@ export default class AmixerIntegerComponent extends Component {
               <span>{this.state.computedValues ? this.state.computedValues[key] : this.state.values[key] }</span>
             </div>
           </div>
+          )}
 
-        )}
         </div>
         <div className="d-flex justify-content-center mt-2">
           <Switch
@@ -134,8 +135,8 @@ export default class AmixerIntegerComponent extends Component {
         <div className="d-flex justify-content-center mb-2">
           <span>Linked</span>
         </div>
-        <div className="d-flex text-center p-1 mt-3">
-          <span>{this.props.control.info.name}</span>
+        <div className="d-flex justify-content-center text-center p-1 mt-3">
+          <span>{this.props.showALSAName ? this.props.control.info.name : ''}</span>
         </div>
       </div>
     );

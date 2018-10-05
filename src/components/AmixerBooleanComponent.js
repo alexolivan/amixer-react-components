@@ -13,7 +13,7 @@ export default class AmixerEnumeratedComponent extends Component {
     this.state = {
       uri: this.props.amixerAPI + "/" + this.props.control.info.numid,
       values: this.props.control.current_values,
-      linked: true,
+      linked: false,
       isLoading: true
     }
   }
@@ -23,6 +23,7 @@ export default class AmixerEnumeratedComponent extends Component {
       .then (response => {
         this.setState({
           values: response.data.current_values,
+          linked: Object.values(response.data.current_values).every(value => value === response.data.current_values[0]),
           isLoading: false
         });
       })
@@ -34,12 +35,17 @@ export default class AmixerEnumeratedComponent extends Component {
       });
   }
 
-  onSwitchChange = (value) => {
+  onSwitchChange = (key, value) => {
     let valueStr = value ? "on" : "off";
     let values = {...this.state.values};
-    Object.keys(values).map(key => {
-      return values[key] = valueStr;
-    });
+    if (this.state.linked){
+      Object.keys(values).map(key => {
+        return values[key] = valueStr;
+      });
+    }else{
+      values[key] = valueStr;
+    }
+
     const valuesStr = Object.keys(values).map(key => values[key]).join(',');
 
     axios({
@@ -62,8 +68,11 @@ export default class AmixerEnumeratedComponent extends Component {
       });
     })
 
-
     this.setState({values});
+  }
+
+  onLinkedSwitchChange = (value) => {
+    this.setState({linked: value});
   }
 
   render() {
@@ -82,11 +91,30 @@ export default class AmixerEnumeratedComponent extends Component {
               disabled={!this.props.control.info.access.includes('w')}
               checkedChildren={'ON'}
               unCheckedChildren={'OFF'}
-              onChange={this.onSwitchChange}
+              onChange={this.onSwitchChange.bind(this, key)}
             />
           )}
 
         </div>
+
+        {this.props.control.info.access.includes('w') && (
+          <div className="d-flex justify-content-center mt-2">
+            <Switch
+              className="switch"
+              checked={this.state.linked}
+              disabled={!this.props.control.info.access.includes('w')}
+              checkedChildren={'ON'}
+              unCheckedChildren={'OFF'}
+              onChange={this.onLinkedSwitchChange}
+            />
+          </div>
+        )}
+        {this.props.control.info.access.includes('w') && (
+          <div className="d-flex justify-content-center mb-2">
+            <span>Linked</span>
+          </div>
+        )}
+
         <div className="d-flex justify-content-center text-center p-1 mt-3">
           <span>{this.props.showALSAName ? this.props.control.info.name : ''}</span>
         </div>

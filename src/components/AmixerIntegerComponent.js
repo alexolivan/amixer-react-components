@@ -8,7 +8,12 @@ import 'rc-slider/assets/index.css';
 import Switch from 'rc-switch';
 import 'rc-switch/assets/index.css';
 
-
+// TODO:
+// Handle linked - free sliders
+// No need of link control if single sliders
+// No need of link control on read-only controls
+// On startup, determine default linked state by comparing value
+//   if equal, then linked, else, free.
 
 export default class AmixerIntegerComponent extends Component {
 
@@ -18,10 +23,11 @@ export default class AmixerIntegerComponent extends Component {
     this.state = {
       uri: this.props.amixerAPI + "/" + this.props.control.info.numid,
       values: this.props.control.current_values,
-      linked: true,
+      linked: false,
       isLoading: true
     }
   }
+
 
   computeValues = () => {
     if (this.props.step){
@@ -37,6 +43,7 @@ export default class AmixerIntegerComponent extends Component {
       .then (response => {
         this.setState({
           values: response.data.current_values,
+          linked: Object.values(response.data.current_values).every(value => value === response.data.current_values[0]),
           isLoading: false
         });
         this.computeValues();
@@ -50,16 +57,20 @@ export default class AmixerIntegerComponent extends Component {
   }
 
 
-  onSliderChange = throttle(100, (value) => {
+  onSliderChange = throttle(100, (key, value) => {
     let values = {...this.state.values};
-    Object.keys(values).map(key => {
-      return values[key] = value
-    });
+    if (this.state.linked) {
+      Object.keys(values).map(key => {
+        return values[key] = value
+      });
+    } else {
+      values[key] = value;
+    }
     this.setState({values});
     this.computeValues();
   })
 
-  onSliderAfterChange = () => {
+  onSliderAfterChange = (key, value) => {
     const valuesStr = Object.keys(this.state.values).map(key => this.state.values[key]).join(',');
 
     axios({
@@ -85,7 +96,6 @@ export default class AmixerIntegerComponent extends Component {
 
   onSwitchChange = (value) => {
     this.setState({linked: value});
-    //TODO Handle non-linked sliders (need to get key from child component)
   }
 
   render() {
@@ -108,8 +118,8 @@ export default class AmixerIntegerComponent extends Component {
                   min={Number(this.props.control.info.min)}
                   max={Number(this.props.control.info.max)}
                   disabled={!this.props.control.info.access.includes('w')}
-                  onChange={this.onSliderChange}
-                  onAfterChange={this.onSliderAfterChange}
+                  onChange={this.onSliderChange.bind(this, key)}
+                  onAfterChange={this.onSliderAfterChange.bind(this, key)}
                   value={Number(this.state.values[key])}
                 />
               </div>
@@ -120,19 +130,23 @@ export default class AmixerIntegerComponent extends Component {
           )}
 
         </div>
-        <div className="d-flex justify-content-center mt-2">
-          <Switch
-            className="switch"
-            checked={this.state.linked}
-            disabled={!this.props.control.info.access.includes('w')}
-            checkedChildren={'ON'}
-            unCheckedChildren={'OFF'}
-            onChange={this.onSwitchChange}
-          />
-        </div>
-        <div className="d-flex justify-content-center mb-2">
-          <span>Linked</span>
-        </div>
+        {this.props.control.info.access.includes('w') && (
+          <div className="d-flex justify-content-center mt-2">
+            <Switch
+              className="switch"
+              checked={this.state.linked}
+              disabled={!this.props.control.info.access.includes('w')}
+              checkedChildren={'ON'}
+              unCheckedChildren={'OFF'}
+              onChange={this.onSwitchChange}
+            />
+          </div>
+        )}
+        {this.props.control.info.access.includes('w') && (
+          <div className="d-flex justify-content-center mb-2">
+            <span>Linked</span>
+          </div>
+        )}
         <div className="d-flex justify-content-center text-center p-1 mt-3">
           <span>{this.props.showALSAName ? this.props.control.info.name : ''}</span>
         </div>

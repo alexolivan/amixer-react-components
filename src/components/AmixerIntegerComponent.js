@@ -8,13 +8,6 @@ import 'rc-slider/assets/index.css';
 import Switch from 'rc-switch';
 import 'rc-switch/assets/index.css';
 
-// TODO:
-// Handle linked - free sliders
-// No need of link control if single sliders
-// No need of link control on read-only controls
-// On startup, determine default linked state by comparing value
-//   if equal, then linked, else, free.
-
 export default class AmixerIntegerComponent extends Component {
 
   constructor(props) {

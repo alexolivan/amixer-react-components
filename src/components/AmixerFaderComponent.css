@@ -1,0 +1,8 @@
+.AmixerFaderComponent{
+  font-size: 11px;
+}
+
+.fader {
+  height: 110px;
+  width: 15px;
+}
